@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
 
-# Initialize model (CPU mode)
+# Initialize model (CPU)
 app = FaceAnalysis(name='buffalo_l')
-app.prepare(ctx_id=-1)  # -1 means CPU
+app.prepare(ctx_id=-1)
 
 
 def generate_embedding(image_bytes):
@@ -16,8 +16,7 @@ def generate_embedding(image_bytes):
     if len(faces) == 0:
         return None
 
-    embedding = faces[0].embedding
-    return embedding
+    return faces[0].embedding
 
 
 def compare_embeddings(emb1, emb2):

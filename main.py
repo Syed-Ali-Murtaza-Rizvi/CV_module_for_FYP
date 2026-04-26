@@ -1,35 +1,38 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from face_engine import generate_embedding, compare_embeddings
+import json
 
 app = FastAPI()
 
-
-@app.post("/generate-embedding/")
-async def create_embedding(file: UploadFile = File(...)):
+@app.post("/register-face/")
+async def register_face(file: UploadFile = File(...)):
     image_bytes = await file.read()
+
     embedding = generate_embedding(image_bytes)
 
     if embedding is None:
         return {"error": "No face detected"}
 
-    return {"embedding": embedding.tolist()}
+    return {
+        "embedding": embedding.tolist()
+    }
 
-
-@app.post("/compare/")
-async def compare_faces(
-    file1: UploadFile = File(...),
-    file2: UploadFile = File(...)
+@app.post("/verify-face/")
+async def verify_face(
+    file: UploadFile = File(...),
+    stored_embedding: str = Form(...)
 ):
-    img1 = await file1.read()
-    img2 = await file2.read()
+    image_bytes = await file.read()
 
-    emb1 = generate_embedding(img1)
-    emb2 = generate_embedding(img2)
+    new_embedding = generate_embedding(image_bytes)
 
-    if emb1 is None or emb2 is None:
-        return {"error": "Face not detected in one or both images"}
+    if new_embedding is None:
+        return {"error": "No face detected"}
 
-    similarity = compare_embeddings(emb1, emb2)
+    # Convert string → list
+    stored_embedding = json.loads(stored_embedding)
+
+    similarity = compare_embeddings(new_embedding, stored_embedding)
 
     return {
         "similarity_score": similarity,
